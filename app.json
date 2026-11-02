@@ -32,6 +32,18 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Give SnapTrail permission to use your camera to tag photos."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationPermission": "Give SnapTrail permission to track your location."
+        }
       ]
     ],
     "experiments": {
