@@ -117,10 +117,17 @@ export default function HomeScreen() {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.push("/history")}
-          className="mt-4 bg-slate-900 border border-slate-800 w-full py-4 rounded-xl items-center active:bg-slate-800">
+          className="mt-4 border-4 border-slate-800 w-full py-4 rounded-xl items-center active:bg-slate-800">
           <Text className="text-slate-300 font-semibold text-lg">
             View Saved Trails 🗺️
           </Text>
+          <TouchableOpacity
+            onPress={() => router.push("/map")}
+            className="mt-10 bg-blue-900/40 border border-blue-700 w-full py-4 rounded-xl items-center active:bg-blue-900/60">
+            <Text className="text-slate-300 font-semibold text-lg">
+              View Journey Map 🗺️
+            </Text>
+          </TouchableOpacity>
         </TouchableOpacity>
       </SafeAreaView>
     </SafeAreaProvider>
