@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
-import MapView, { Marker } from "react-native-maps";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Image, Text, TouchableOpacity, View } from "react-native";
+import MapView, { Marker } from "react-native-maps";
 
 export default function MapScreen() {
   const [snaps, setSnaps] = useState<any[]>([]);

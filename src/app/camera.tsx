@@ -1,14 +1,17 @@
-import { useState, useRef } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
-import * as Location from "expo-location"; // Make sure Location is imported!
-import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import * as Location from "expo-location";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRef, useState } from "react";
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
+
+const CATEGORIES = ["🏙️ City", "🌲 Nature", "🍔 Food", "🧭 Landmark"];
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<"front" | "back">("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [capturing, setCapturing] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("🏙️ City");
   
   const { lat, lon } = useLocalSearchParams<{ lat: string; lon: string }>();
   const router = useRouter();
@@ -41,38 +44,32 @@ export default function CameraScreen() {
         setCapturing(true);
         const photo = await cameraRef.current.takePictureAsync({ skipProcessing: true });
         
-        // 1. Default address fallback
         let locationName = "Unknown Location";
-
         if (lat && lon) {
           try {
-            // 2. Perform Reverse Geocoding
             const addressResponse = await Location.reverseGeocodeAsync({
               latitude: Number(lat),
               longitude: Number(lon),
             });
-
             if (addressResponse.length > 0) {
               const addr = addressResponse[0];
-              // Build a friendly string like "City, Region" or fallback to street name
               locationName = `${addr.city || addr.subregion || addr.name || "Explore Point"}, ${addr.region || ""}`;
             }
           } catch (geoError) {
-            console.log("Geocoding failed, using coordinates instead", geoError);
+            console.log("Geocoding failed", geoError);
           }
         }
 
-        // 3. Create our enhanced snap object
         const newSnap = {
           id: Date.now().toString(),
           uri: photo.uri,
           lat: lat ? Number(lat).toFixed(4) : "0.0000",
           lon: lon ? Number(lon).toFixed(4) : "0.0000",
           address: locationName,
+          category: selectedCategory, // Save selected category tag!
           timestamp: new Date().toLocaleTimeString(),
         };
 
-        // 4. Save to AsyncStorage
         const existingSnapsJson = await AsyncStorage.getItem("@snap_trail_history");
         const existingSnaps = existingSnapsJson ? JSON.parse(existingSnapsJson) : [];
 
@@ -91,13 +88,37 @@ export default function CameraScreen() {
   return (
     <View className="flex-1 bg-black">
       <CameraView style={{ flex: 1 }} facing={facing} ref={cameraRef}>
+        
+        {/* Top Overlay: Location Badge */}
         <View className="absolute top-12 left-6 right-6 bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-slate-700/50">
           <Text className="text-emerald-400 font-semibold text-xs uppercase tracking-wider mb-1">📍 Tagged Location</Text>
-          <Text className="text-white font-mono text-sm">
+          <Text className="text-white font-mono text-sm" numberOfLines={1}>
             {lat ? `${Number(lat).toFixed(4)}, ${Number(lon).toFixed(4)}` : "Fetching GPS..."}
           </Text>
         </View>
 
+        {/* Category Selector Pills Overlay */}
+        <View className="absolute top-32 left-0 right-0 px-6">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+            {CATEGORIES.map((cat) => (
+              <TouchableOpacity
+                key={cat}
+                onPress={() => setSelectedCategory(cat)}
+                className={`px-4 py-2 rounded-full border ${
+                  selectedCategory === cat 
+                    ? "bg-blue-600 border-blue-500" 
+                    : "bg-slate-900/80 border-slate-700/60"
+                }`}
+              >
+                <Text className={`text-xs font-semibold ${selectedCategory === cat ? "text-white" : "text-slate-300"}`}>
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Bottom Overlay: Controls */}
         <View className="absolute bottom-10 left-0 right-0 flex-row justify-around items-center px-8">
           <TouchableOpacity 
             onPress={() => router.back()}
@@ -125,6 +146,7 @@ export default function CameraScreen() {
             <Text className="text-white font-medium">Flip</Text>
           </TouchableOpacity>
         </View>
+
       </CameraView>
     </View>
   );
